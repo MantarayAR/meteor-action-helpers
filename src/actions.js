@@ -23,14 +23,86 @@ that._actions = [
  *                        were added to the action.
  */
 that.addAction = function ( hookName, callback, priority ) {
-  priority = priority || 10;
-  // TODO
+  if ( typeof priority === 'undefined' || priority === null ) { 
+    priority = 10;
+  }
+  var newHookName = true;
 
-  // TODO when inserting, insert IN ORDER
+  // Check if the name exists
+  for ( var i = that._actions.length - 1; i >= 0 ; i-- ) {
+    var action = that._actions[i];
+
+    if ( action.hookName === hookName ) {
+      newHookName = false;
+      var hooked  = false;
+      // when inserting, insert IN ORDER
+      for ( var j = 0; j < action.actions.length; j++ ) {
+        var singleAction = action.actions[j];
+
+        if ( singleAction.priority > priority ) {
+          // insert BEFORE the current index
+          hooked = true;
+
+          that._actions[i].actions.splice( j, 0, {
+            priority : priority,
+            callback : callback
+          } );
+          break;
+        }
+
+      }
+
+      // Handle the case where the new priority is bigger than all the rest
+      if ( ! hooked ) {
+        action.actions.push( {
+          priority : priority,
+          callback : callback
+        } );
+      }
+    }
+  }
+
+  if ( newHookName ) {
+    that._actions.push( {
+      hookName : hookName,
+      actions: [ {
+        priority : priority,
+        callback : callback
+      } ],
+      timesExecuted : 0
+    } )
+  }
 }
 
+/**
+ * Check if any action has been registered for a hook
+ *
+ * @param String hookName The name of the action hook.
+ * @param Function callback (optional) if specified, return the priority of that function
+ *                          on this hook or false if not attached.
+ * @return Number or Boolean
+ */
 that.hasAction = function ( hookName, callback ) {
-  // TODO
+  for ( var i = that._actions.length - 1; i >= 0 ; i-- ) {
+    var action = that._actions[i];
+
+    if ( action.hookName === hookName ) {
+      if ( callback ) {
+        for ( var j = action.actions.length - 1; j >= 0; j-- ) {
+          var singleAction = action.actions[j];
+
+          if ( singleAction.callback === callback ||
+             '' + singleAction.callback === '' + callback ) {
+            return singleAction.priority;
+          }
+        }
+      } else {
+        return true;
+      }
+    }
+  }
+
+  return false;
 }
 
 /**
@@ -44,7 +116,7 @@ that.doAction = function ( hookName ) {
     var action = that._actions[i];
 
     if ( action.hookName === hookName ) {
-      for ( var j = action.actions.length - 1; j >= 0; j-- ) {
+      for ( var j = 0; j < action.actions.length; j++ ) {
         var singleAction = action.actions[j];
         var args         = Array.prototype.slice.call( arguments, 1 );
         singleAction.callback.apply( this, args );
@@ -87,7 +159,10 @@ that.didAction = function ( hookName ) {
  *                 False otherwise.
  */
 that.removeAction = function ( hookName, callback, priority ) {
-  priority = priority || false;
+  if ( typeof priority === 'undefined' || priority === null ) { 
+    priority = false;
+  }
+
   var removed = false;
 
   for ( var i = that._actions.length - 1; i >= 0 ; i-- ) {
@@ -98,7 +173,7 @@ that.removeAction = function ( hookName, callback, priority ) {
         var singleAction = action.actions[j];
 
         if ( priority ) {
-          if ( singleAction.priority > priority ) {
+          if ( singleAction.priority < priority ) {
             // The actions are sorted in order of priority
             break;
           }
@@ -130,7 +205,9 @@ that.removeAction = function ( hookName, callback, priority ) {
  *                 False otherwise.
  */
 that.removeAllActions = function ( hookName, priority ) {
-  priority    = priority || false;
+  if ( typeof priority === 'undefined' || priority === null ) { 
+    priority = false;
+  }
   var removed = false;
 
   for ( var i = that._actions.length - 1; i >= 0; i-- ) {
@@ -145,7 +222,7 @@ that.removeAllActions = function ( hookName, priority ) {
             // Delete this current action
             action.actions.splice(j, 1);
             removed = true;
-          } else if ( singleAction.priority > priority ) {
+          } else if ( singleAction.priority < priority ) {
             // The actions are sorted in order of priority
             break;
           }

@@ -1,5 +1,84 @@
 var that = this;
 
+Tinytest.add( 'addAction will add in order', function ( test ) {
+  var func = function () { return 'wow' };
+  that._actions = [ {
+    hookName : 'example-action-hook-name',
+    actions : [ {
+      priority : 10,
+      callback : function () {}
+    },{
+      priority : 20,
+      callback : function () {}
+    } ],
+    timesExecuted : 0
+  } ];
+
+
+  // Test generic case (insert 15 into [10, 20])
+  that.addAction( 'example-action-hook-name', func, 15 );
+  test.equal( that._actions[0].actions[1].callback + '', func + '' );
+
+  // Test edge case (insert 0 into [10, 15, 20])
+  that.addAction( 'example-action-hook-name', func, 0 );
+  test.equal( that._actions[0].actions[0].callback + '', func + '' );
+
+  // Test edge case (insert 30 into [10, 20])
+  that.addAction( 'example-action-hook-name', func, 30 );
+  test.equal( that._actions[0].actions[4].callback + '', func + '' );
+
+} );
+
+Tinytest.add( 'addAction will add if new hook name', function ( test ) {
+  that._actions = [];
+  // Test inserting a new action
+  that.addAction( 'hook', function () {} );
+
+  test.equal( that.hasAction( 'hook' ), true );
+  test.equal( that._actions.length, 1 );
+  test.equal( that._actions[0].actions.length, 1 );
+} );
+
+
+Tinytest.add( 'hasAction will check that a hook exists', function ( test ) {
+  that._actions = [ {
+    hookName : 'example-action-hook-name',
+    actions : [ {
+      priority : 10,
+      callback : function () {}
+    } ],
+    timesExecuted : 0
+  } ];
+
+  var result = that.hasAction( 'example-action-hook-name' );
+
+  test.equal( result, true );
+
+  result = that.hasAction( 'non-existent-action' );
+
+  test.equal( result, false );
+} );
+
+Tinytest.add( 'hasAction will check that a hook exists with a callback', function ( test ) {
+  var func = function () {};
+  that._actions = [ {
+    hookName : 'example-action-hook-name',
+    actions : [ {
+      priority : 10,
+      callback : func
+    } ],
+    timesExecuted : 0
+  } ];
+
+  var result = that.hasAction( 'example-action-hook-name', func );
+
+  test.equal( result, 10 );
+
+  result = that.hasAction( 'non-existent-action', func );
+
+  test.equal( result, false );
+} );
+
 Tinytest.add( 'doAction will perform the actions attached to the hook', function ( test ) {
   var a = 0;
   var b = 0;
@@ -60,7 +139,7 @@ Tinytest.add( 'didAction counts how many times a hook was called', function ( te
   var result = that.didAction( 'example-action-hook-name' );
   test.equal( result, 20 );
 
-  result = that.didAction( 'non-existant-action' );
+  result = that.didAction( 'non-existent-action' );
   test.equal( result, false );
 } );
 
@@ -75,7 +154,7 @@ Tinytest.add( 'didAction counts how many times a hook was called (integration)',
   var result = that.didAction( 'example-action-hook-name' );
   test.equal( result, 3 );
 
-  result = that.didAction( 'non-existant-action' );
+  result = that.didAction( 'non-existent-action' );
   test.equal( result, false );
 } );
 
