@@ -1,15 +1,14 @@
 var that = this;
 
-that._actions = [
-// {
-//   hookName : 'example-action-hook-name',
+that._actions = {
+// 'example-action-hook-name' : {
 //   actions : [ {
 //     priority : 10,
 //     callback : function () {}
-//   },
-//   timesExecuted : 0 ]
+//   } ],
+//   timesExecuted : 0 
 // }
-];
+};
 
 /**
  * Hooks a function on to a specific action.
@@ -29,48 +28,43 @@ that.addAction = function ( hookName, callback, priority ) {
   var newHookName = true;
 
   // Check if the name exists
-  for ( var i = that._actions.length - 1; i >= 0 ; i-- ) {
-    var action = that._actions[i];
+  if ( that._actions[hookName] ) {
+    var action  = that._actions[hookName];
+    newHookName = false;
+    var hooked  = false;
 
-    if ( action.hookName === hookName ) {
-      newHookName = false;
-      var hooked  = false;
-      // when inserting, insert IN ORDER
-      for ( var j = 0; j < action.actions.length; j++ ) {
-        var singleAction = action.actions[j];
+    // when inserting, insert IN ORDER
+    for ( var j = 0; j < action.actions.length; j++ ) {
+      var singleAction = action.actions[j];
 
-        if ( singleAction.priority > priority ) {
-          // insert BEFORE the current index
-          hooked = true;
+      if ( singleAction.priority > priority ) {
+        // insert BEFORE the current index
+        hooked = true;
 
-          that._actions[i].actions.splice( j, 0, {
-            priority : priority,
-            callback : callback
-          } );
-          break;
-        }
-
-      }
-
-      // Handle the case where the new priority is bigger than all the rest
-      if ( ! hooked ) {
-        action.actions.push( {
+        action.actions.splice( j, 0, {
           priority : priority,
           callback : callback
         } );
+        break;
       }
+    }
+    // Handle the case where the new priority is bigger than all the rest
+    if ( ! hooked ) {
+      action.actions.push( {
+        priority : priority,
+        callback : callback
+      } );
     }
   }
 
   if ( newHookName ) {
-    that._actions.push( {
-      hookName : hookName,
+    that._actions[hookName] = {
       actions: [ {
         priority : priority,
         callback : callback
       } ],
       timesExecuted : 0
-    } )
+    };
   }
 }
 
@@ -83,22 +77,20 @@ that.addAction = function ( hookName, callback, priority ) {
  * @return Number or Boolean
  */
 that.hasAction = function ( hookName, callback ) {
-  for ( var i = that._actions.length - 1; i >= 0 ; i-- ) {
-    var action = that._actions[i];
+  if ( that._actions[hookName] ) {
+    var action = that._actions[hookName];
 
-    if ( action.hookName === hookName ) {
-      if ( callback ) {
-        for ( var j = action.actions.length - 1; j >= 0; j-- ) {
-          var singleAction = action.actions[j];
+    if ( callback ) {
+      for ( var j = action.actions.length - 1; j >= 0; j-- ) {
+        var singleAction = action.actions[j];
 
-          if ( singleAction.callback === callback ||
-             '' + singleAction.callback === '' + callback ) {
-            return singleAction.priority;
-          }
+        if ( singleAction.callback === callback ||
+           '' + singleAction.callback === '' + callback ) {
+          return singleAction.priority;
         }
-      } else {
-        return true;
       }
+    } else {
+      return true;
     }
   }
 
@@ -112,18 +104,16 @@ that.hasAction = function ( hookName, callback ) {
  * @param Arguments arg (optional) any number of arguments you to send to this hook.
  */
 that.doAction = function ( hookName ) {
-  for ( var i = that._actions.length - 1; i >= 0 ; i-- ) {
-    var action = that._actions[i];
+  if ( this._actions[hookName] ) {
+    var action = that._actions[hookName];
 
-    if ( action.hookName === hookName ) {
-      for ( var j = 0; j < action.actions.length; j++ ) {
-        var singleAction = action.actions[j];
-        var args         = Array.prototype.slice.call( arguments, 1 );
-        singleAction.callback.apply( this, args );
-      }
-
-      action.timesExecuted += 1;
+    for ( var j = 0; j < action.actions.length; j++ ) {
+      var singleAction = action.actions[j];
+      var args         = Array.prototype.slice.call( arguments, 1 );
+      singleAction.callback.apply( this, args );
     }
+
+    action.timesExecuted += 1;
   }
 };
 
@@ -134,12 +124,10 @@ that.doAction = function ( hookName ) {
  * @return Number The number of times action hookName is fired
  */
 that.didAction = function ( hookName ) {
-  for ( var i = that._actions.length - 1; i >= 0 ; i-- ) {
-    var action = that._actions[i];
-
-    if ( action.hookName === hookName ) {
-      return action.timesExecuted;
-    }
+  if ( that._actions[hookName] ) {
+    var action = that._actions[hookName];
+    
+    return action.timesExecuted;
   }
 
   return false;
@@ -165,31 +153,30 @@ that.removeAction = function ( hookName, callback, priority ) {
 
   var removed = false;
 
-  for ( var i = that._actions.length - 1; i >= 0 ; i-- ) {
-    var action = that._actions[i];
+  if ( that._actions[hookName] ) {
+    var action = that._actions[hookName];
 
-    if ( action.hookName === hookName ) {
-      for ( var j = action.actions.length - 1; j >= 0; j-- ) {
-        var singleAction = action.actions[j];
+    for ( var j = action.actions.length - 1; j >= 0; j-- ) {
+      var singleAction = action.actions[j];
 
-        if ( priority ) {
-          if ( singleAction.priority < priority ) {
-            // The actions are sorted in order of priority
-            break;
-          }
-
-          if ( priority !== singleAction.priority ) {
-            continue;
-          }
+      if ( priority ) {
+        if ( singleAction.priority < priority ) {
+          // The actions are sorted in order of priority
+          break;
         }
 
-        if ( singleAction.callback === callback ||
-             '' + singleAction.callback === '' + callback ) {
-          action.actions.splice(j, 1);
-          removed = true;
+        if ( priority !== singleAction.priority ) {
+          continue;
         }
       }
+
+      if ( singleAction.callback === callback ||
+           '' + singleAction.callback === '' + callback ) {
+        action.actions.splice(j, 1);
+        removed = true;
+      }
     }
+    
   }
 
   return removed;
@@ -210,30 +197,27 @@ that.removeAllActions = function ( hookName, priority ) {
   }
   var removed = false;
 
-  for ( var i = that._actions.length - 1; i >= 0; i-- ) {
-    var action = that._actions[i];
+  if ( that._actions[hookName] ) {
+    var action = that._actions[hookName];
+    if ( priority ) {
+      for ( var j = action.actions.length - 1; j >= 0; j-- ) {
+        var singleAction = action.actions[j];
 
-    if ( action.hookName === hookName ) {
-      if ( priority ) {
-        for ( var j = action.actions.length - 1; j >= 0; j-- ) {
-          var singleAction = action.actions[j];
-
-          if ( singleAction.priority === priority ) {
-            // Delete this current action
-            action.actions.splice(j, 1);
-            removed = true;
-          } else if ( singleAction.priority < priority ) {
-            // The actions are sorted in order of priority
-            break;
-          }
-        } 
-      } else {
-        // Delete all actions
-        that._actions.splice(i, 1);
-        removed = true;
-      }
+        if ( singleAction.priority === priority ) {
+          // Delete this current action
+          action.actions.splice(j, 1);
+          removed = true;
+        } else if ( singleAction.priority < priority ) {
+          // The actions are sorted in order of priority
+          break;
+        }
+      } 
+    } else {
+      // Delete all actions
+      delete that._actions[hookName];
+      removed = true;
     }
-  };
+  }
 
   return removed;
 }
