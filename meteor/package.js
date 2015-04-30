@@ -12,7 +12,9 @@ Package.describe({
 
 Package.onUse(function(api) {
   api.versionsFrom('1.1.0.2');
+  api.addFiles('../src/_action_helpers.js');
   api.addFiles('../src/actions.js');
+  api.addFiles('../src/filters.js');
 });
 
 Package.onTest(function(api) {

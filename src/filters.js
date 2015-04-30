@@ -2,11 +2,10 @@ var that = this;
 
 that._filters = {
   'example-filter-hook-name' : {
-    filters : [
+    actions : [
     ],
     timeExecuted : 0
   }
-}
 };
 
 
@@ -82,8 +81,10 @@ that.removeFilter = function ( hookName, callback, priority ) {
  *
  * @param String hookName the filter ro remove hooks from.
  * @param Number priority the priority number to remove
+ * @return Boolean True if the filter hookName was successfully removed,
+ *                 False otherwise.
  */
-that.removeAllFilters = function () {
-  // TODO
+that.removeAllFilters = function ( hookName, priority ) {
+  return that.__action_helpers.common.removeAll( that._filters, hookName, priority );
 }
 
