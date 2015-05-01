@@ -21,4 +21,5 @@ Package.onTest(function(api) {
   api.use('tinytest');
   api.use('mantarayar:action-helpers');
   api.addFiles('../tests/action-tests.js');
+  api.addFiles('../tests/filter-tests.js');
 });

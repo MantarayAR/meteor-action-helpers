@@ -46,7 +46,6 @@ Tinytest.add( 'addAction will add if new hook name', function ( test ) {
   test.equal( that._actions.hook.actions.length, 1 );
 } );
 
-
 Tinytest.add( 'hasAction will check that a hook exists', function ( test ) {
   that._actions = {
     'example-action-hook-name' : {
@@ -212,7 +211,7 @@ Tinytest.add( 'removeAction removes the given hook with a priority', function ( 
 
   var result = that.removeAction( 'example-action-hook-name', func, 12 );
 
-  test.notEqual( that._actions['example-action-hook-name'], null );
+  test.notEqual( that._actions['example-action-hook-name'], undefined );
   test.equal( that._actions['example-action-hook-name'].actions.length, 1 );
   test.equal( result, true );
 } );
@@ -253,7 +252,7 @@ Tinytest.add( 'removeAllActions removes all of the given hook with a given prior
 
   var result = that.removeAllActions( 'example-action-hook-name', 12 );
 
-  test.notEqual( that._actions['example-action-hook-name'], null );
+  test.notEqual( that._actions['example-action-hook-name'], undefined );
   test.equal( that._actions['example-action-hook-name'].actions.length, 1 );
   test.equal( result, true );
 } );

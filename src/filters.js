@@ -22,10 +22,7 @@ that._filters = {
  * @return Boolean the function returns trueof the attempted function hook succeeds
  */
 that.addFilter = function( hookName, callback, priority ) {
-  if ( typeof priority === 'undefined' || priority === null ) { 
-    priority = 10;
-  }
-  // TODO
+  that.__action_helpers.common.add( that._filters, hookName, callback, priority );
 }
 
 /**
@@ -37,8 +34,7 @@ that.addFilter = function( hookName, callback, priority ) {
  * @return Boolean or Number
  */
 that.hasFilter = function ( hookName, callback ) {
-  callback = callback || false;
-  // TODO
+  return that.__action_helpers.common.has( that._filters, hookName, callback );
 }
 
 
@@ -53,7 +49,25 @@ that.hasFilter = function ( hookName, callback ) {
  * @return Any
  */
 that.applyFilters = function ( hookName ) {
-  // TODO
+  if ( that._filters[hookName] ) {
+    var tempFilterContext               = that.__action_helpers.filterContext;
+    that.__action_helpers.filterContext = hookName;
+    var filter = that._filters[hookName];
+
+    var result = arguments[1];
+    var args   = Array.prototype.slice.call( arguments, 1 );
+
+    for (var i = 0; i < filter.actions.length; i++ ) {
+      var singleAction = filter.actions[i];
+      result           = singleAction.callback.apply( this, args );
+      args[0]          = result;
+    }
+
+    that.__action_helpers.filterContext = tempFilterContext;
+    return result;
+  }
+
+  return false;
 }
 
 /**
@@ -62,7 +76,7 @@ that.applyFilters = function ( hookName ) {
  * @return String
  */
 that.currentFilter = function () {
-  // TODO
+  return this.__action_helpers.filterContext;
 }
 
 /**
@@ -73,7 +87,7 @@ that.currentFilter = function () {
  * @param Number priority (default) The priority of the function
  */
 that.removeFilter = function ( hookName, callback, priority ) {
-  // TODO
+  return that.__action_helpers.common.remove( that._filters, hookName, callback, priority );
 }
 
 /**
