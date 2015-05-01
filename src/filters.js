@@ -1,11 +1,11 @@
 var that = this;
 
 that._filters = {
-  'example-filter-hook-name' : {
-    actions : [
-    ],
-    timeExecuted : 0
-  }
+  // 'example-filter-hook-name' : {
+  //   actions : [
+  //   ],
+  //   timeExecuted : 0
+  // }
 };
 
 
