@@ -1,5 +1,11 @@
-# meteor-action-helpers
+# meteor-actions-filters
 Use Wordpress style actions and filters in Meteor.
+
+# Installation
+
+```
+meteor add mantarayar:actions-filters
+```
 
 # Actions
 
